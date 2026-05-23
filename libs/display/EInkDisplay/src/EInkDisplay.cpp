@@ -528,6 +528,14 @@ void EInkDisplay::resetDisplay() {
   }
 }
 
+EInkDisplay::IdleHook EInkDisplay::_idleHook = nullptr;
+void *EInkDisplay::_idleHookCtx = nullptr;
+
+void EInkDisplay::setIdleHook(IdleHook hook, void *ctx) {
+  _idleHook = hook;
+  _idleHookCtx = ctx;
+}
+
 void EInkDisplay::waitForRefresh(const char *comment) {
   pollBusy(comment, "Refresh done");
 }
@@ -538,6 +546,8 @@ void EInkDisplay::pollBusy(const char *comment, const char *completeWord) {
     // X4: BUSY held HIGH while busy, drops LOW when done.
     while (digitalRead(_busy) == HIGH) {
       delay(1);
+      if (_idleHook)
+        _idleHook(_idleHookCtx);
       if (millis() - start > 30000)
         break;
     }
@@ -553,6 +563,8 @@ void EInkDisplay::pollBusy(const char *comment, const char *completeWord) {
     bool sawLow = false;
     while (digitalRead(_busy) == HIGH) {
       delay(1);
+      if (_idleHook)
+        _idleHook(_idleHookCtx);
       if (millis() - start > 1000)
         break;
     }
@@ -560,6 +572,8 @@ void EInkDisplay::pollBusy(const char *comment, const char *completeWord) {
       sawLow = true;
       while (digitalRead(_busy) == LOW) {
         delay(1);
+        if (_idleHook)
+          _idleHook(_idleHookCtx);
         if (millis() - start > 30000)
           break;
       }

@@ -103,6 +103,26 @@ class EInkDisplay {
   // Save the current framebuffer to a PBM file (desktop/test builds only)
   void saveFrameBufferAsPBM(const char* filename);
 
+  // Refresh-wait idle hook.
+  //
+  // The e-ink refresh wait polls the BUSY line in a 1 ms `delay(1)` loop
+  // for ~400-700 ms per page turn on typical reader content. That window
+  // is CPU-idle and a natural place to run other work -- chunked
+  // background section indexing in the reader, for example. Callers
+  // install a void(void*) function pointer + context via setIdleHook;
+  // waitForRefresh/waitWhileBusy invoke it after each 1 ms poll. The
+  // hook is intentionally NOT a std::function (binary-size discipline,
+  // see open-x4-sdk Resource Protocol).
+  //
+  // Threading: the hook fires on whatever task calls into the wait
+  // (in practice the render task). The hook implementation MUST be safe
+  // to call from that task and MUST NOT take more than ~50-100 ms or it
+  // delays detection of the BUSY transition. Returning quickly when
+  // there is no work to do (one cheap pointer check) is the common
+  // case.
+  using IdleHook = void (*)(void* ctx);
+  static void setIdleHook(IdleHook hook, void* ctx);
+
  private:
   // Internal geometry setter used by setDisplayX3().
   void setDisplayDimensions(uint16_t width, uint16_t height);
@@ -141,6 +161,8 @@ class EInkDisplay {
   bool customLutActive = false;
   bool inGrayscaleMode = false;
   bool drawGrayscale = false;
+  static IdleHook _idleHook;
+  static void* _idleHookCtx;
 
   // Low-level display control
   void resetDisplay();
