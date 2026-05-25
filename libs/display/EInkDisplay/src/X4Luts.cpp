@@ -2,6 +2,8 @@
 
 #include <Arduino.h>  // PROGMEM
 
+#if EINK_PANEL_X4
+
 // X4 (SSD1677) LUT data: differential grayscale, grayscale-revert, and
 // the two factory waveform banks extracted from V3.1.9_CH_X4_0117
 // firmware (by CrazyCoder). The factory banks use absolute 2-bit pixel
@@ -139,3 +141,5 @@ extern const unsigned char lut_factory_quality[] PROGMEM = {
     0x22, 0x22, 0x22, 0x22, 0x22,
     // Voltages: VGH, VSH1, VSH2, VSL, VCOM
     0x17, 0x41, 0xA8, 0x32, 0x30};
+
+#endif  // EINK_PANEL_X4

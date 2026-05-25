@@ -4,12 +4,16 @@
 #include <fstream>
 #include <vector>
 
+#if EINK_PANEL_X4
 // setRamArea / writeRamBuffer here still use SSD1677 opcodes (those
 // methods are X4-specific helpers reached via friend from X4Panel).
 // X3 opcodes and LUT data are X3-only; EInkDisplay touches neither.
 #include "X4Constants.h"
+#endif
 
+#if EINK_PANEL_X3
 void EInkDisplay::setDisplayX3() { _panel = std::make_unique<X3Panel>(); }
+#endif
 
 // Refresh-wait idle hook — single slot, see setIdleHook header comment.
 EInkDisplay::IdleHook EInkDisplay::_idleHook = nullptr;
@@ -43,10 +47,21 @@ EInkDisplay::EInkDisplay(std::unique_ptr<Panel> panel, int8_t sclk, int8_t mosi,
     Serial.printf("[%lu]   SCLK=%d, MOSI=%d, CS=%d, DC=%d, RST=%d, BUSY=%d\n", millis(), sclk, mosi, cs, dc, rst, busy);
 }
 
-// Legacy form — defaults the panel to X4Panel so the deprecated
-// setDisplayX3() shim can still swap it before begin().
+// Legacy form — defaults the panel to whichever single panel is
+// available; X4 takes precedence in multi-panel builds since that was
+// the original default the deprecated setDisplayX3() shim assumed.
+namespace {
+std::unique_ptr<Panel> makeDefaultPanel() {
+#if EINK_PANEL_X4
+  return std::make_unique<X4Panel>();
+#elif EINK_PANEL_X3
+  return std::make_unique<X3Panel>();
+#endif
+}
+}  // namespace
+
 EInkDisplay::EInkDisplay(int8_t sclk, int8_t mosi, int8_t cs, int8_t dc, int8_t rst, int8_t busy)
-    : EInkDisplay(std::make_unique<X4Panel>(), sclk, mosi, cs, dc, rst, busy) {}
+    : EInkDisplay(makeDefaultPanel(), sclk, mosi, cs, dc, rst, busy) {}
 
 void EInkDisplay::begin() {
   if (Serial) Serial.printf("[%lu] EInkDisplay: begin() called\n", millis());
@@ -152,6 +167,7 @@ void EInkDisplay::waitWhileBusy(const char* comment) { pollBusy(comment, "Wait c
 
 void EInkDisplay::initDisplayController() { _panel->init(*this); }
 
+#if EINK_PANEL_X4
 void EInkDisplay::setRamArea(const uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
   constexpr uint8_t DATA_ENTRY_X_INC_Y_DEC = 0x01;
 
@@ -186,6 +202,7 @@ void EInkDisplay::setRamArea(const uint16_t x, uint16_t y, uint16_t w, uint16_t 
   sendData((y + h - 1) % 256);  // low byte
   sendData((y + h - 1) / 256);  // high byte
 }
+#endif  // EINK_PANEL_X4
 
 void EInkDisplay::clearScreen(const uint8_t color) const { memset(frameBuffer, color, _panel->bufferSize()); }
 
@@ -252,6 +269,7 @@ void EInkDisplay::drawImageTransparent(const uint8_t* imageData, const uint16_t 
   if (Serial) Serial.printf("[%lu]   Transparent image drawn to frame buffer\n", millis());
 }
 
+#if EINK_PANEL_X4
 void EInkDisplay::writeRamBuffer(uint8_t ramBuffer, const uint8_t* data, uint32_t size) {
   const char* bufferName = (ramBuffer == CMD_WRITE_RAM_BW) ? "BW" : "RED";
   const unsigned long startTime = millis();
@@ -263,6 +281,7 @@ void EInkDisplay::writeRamBuffer(uint8_t ramBuffer, const uint8_t* data, uint32_
   const unsigned long duration = millis() - startTime;
   if (Serial) Serial.printf("[%lu]   %s RAM write complete (%lu ms)\n", millis(), bufferName, duration);
 }
+#endif  // EINK_PANEL_X4
 
 void EInkDisplay::setFramebuffer(const uint8_t* bwBuffer) const { memcpy(frameBuffer, bwBuffer, _panel->bufferSize()); }
 

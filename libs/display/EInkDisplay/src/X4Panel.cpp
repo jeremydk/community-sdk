@@ -5,6 +5,8 @@
 #include "X4Constants.h"
 #include "X4Luts.h"
 
+#if EINK_PANEL_X4
+
 // X4 (SSD1677) BUSY polarity: active HIGH. BUSY held HIGH while the
 // controller is working, drops LOW when the operation completes.
 // Single-phase poll with a 30s safety timeout.
@@ -302,3 +304,5 @@ void X4Panel::pollBusy(EInkDisplay& d, const char* comment, const char* complete
     Serial.printf("[%lu]   %s: %s (%lu ms)\n", millis(), completeWord, comment, millis() - start);
   }
 }
+
+#endif  // EINK_PANEL_X4

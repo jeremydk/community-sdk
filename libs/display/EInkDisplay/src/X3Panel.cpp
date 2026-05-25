@@ -10,6 +10,8 @@
 #include "X3Constants.h"
 #include "X3Luts.h"
 
+#if EINK_PANEL_X3
+
 // X3-only state-machine hooks, dispatched here via the Panel virtual
 // override (EInkDisplay's public-API entry points just forward).
 // requestResync arms the next refresh to be a forced full + N settle
@@ -178,11 +180,11 @@ void X3Panel::cleanupGrayscaleBuffers(EInkDisplay& d, const uint8_t* bwBuffer) {
 }
 
 // X3 displayGrayBuffer: X3 has no SSD1677-style setCustomLUT path;
-// LUTs go through the banked loadLutBankX3WithCdi helpers.
-// factoryMode picks the OEM _full bank (no separate fast factory LUTs
-// on X3 — fast falls back to quality with a log line). Differential
-// mode uses the OEM gc (grayscale/AA) bank with CDI 0x97 → 0xD7.
-void X3Panel::displayGrayBuffer(EInkDisplay& d, bool turnOffScreen, const unsigned char* lut, bool factoryMode) {
+// LUTs go through the banked loadLutBankX3WithCdi helpers. `lut` is
+// part of the Panel API for X4; X3 ignores it and uses its own banks.
+// factoryMode picks the OEM _full bank; differential mode uses the OEM
+// gc (grayscale/AA) bank with CDI 0x97 → 0xD7.
+void X3Panel::displayGrayBuffer(EInkDisplay& d, bool turnOffScreen, const unsigned char* /*lut*/, bool factoryMode) {
   d.drawGrayscale = false;
   if (!_x3GrayState.lsbValid) return;
 
@@ -191,13 +193,7 @@ void X3Panel::displayGrayBuffer(EInkDisplay& d, bool turnOffScreen, const unsign
   d.inGrayscaleMode = !factoryMode;
 
   if (factoryMode) {
-    if (Serial) {
-      // lut_factory_fast/quality are X4 externs; equality-compare to
-      // tag the log line. X3 still uses _full bank either way.
-      extern const unsigned char lut_factory_fast[];
-      const char* modeTag = (lut == lut_factory_fast) ? "factory_fast (fallback to quality)" : "factory_quality";
-      Serial.printf("[%lu]   X3_GRAY_MODE=%s\n", millis(), modeTag);
-    }
+    if (Serial) Serial.printf("[%lu]   X3_GRAY_MODE=factory\n", millis());
     // CDI 0x29 (differential) — _full bank's OEM CDI per FUN_420a1218.
     loadLutBankX3WithCdi(d, 0x29, 0x07, lut_x3_vcom_full, lut_x3_ww_full, lut_x3_bw_full, lut_x3_wb_full,
                          lut_x3_bb_full);
@@ -569,5 +565,7 @@ void X3Panel::triggerRefreshX3(EInkDisplay& d, bool turnOffScreen, const char* t
     d.isScreenOn = false;
   }
 }
+
+#endif  // EINK_PANEL_X3
 
 // =====================================================================

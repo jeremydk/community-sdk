@@ -2,6 +2,10 @@
 
 #include <cstdint>
 
+#include "Panel.h"  // EINK_PANEL_X3
+
+#if EINK_PANEL_X3
+
 // Extern declarations for the X3 LUT bank arrays. Definitions live in
 // X3Luts.cpp; the sole in-tree consumer is X3Panel.cpp.
 //
@@ -42,3 +46,5 @@ extern const uint8_t lut_x3_ww_gc[];
 extern const uint8_t lut_x3_bw_gc[];
 extern const uint8_t lut_x3_wb_gc[];
 extern const uint8_t lut_x3_bb_gc[];
+
+#endif  // EINK_PANEL_X3

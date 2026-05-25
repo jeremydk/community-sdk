@@ -2,6 +2,19 @@
 
 #include <cstdint>
 
+// Build-time panel selection. Default both on so existing consumers
+// build unchanged; downstream firmware can drop a panel by passing
+// -DEINK_PANEL_X3=0 (or X4=0) to the compiler. At least one must be on.
+#ifndef EINK_PANEL_X3
+#define EINK_PANEL_X3 1
+#endif
+#ifndef EINK_PANEL_X4
+#define EINK_PANEL_X4 1
+#endif
+#if !EINK_PANEL_X3 && !EINK_PANEL_X4
+#error "At least one of EINK_PANEL_X3 / EINK_PANEL_X4 must be enabled."
+#endif
+
 class EInkDisplay;  // forward decl — pollBusy takes EInkDisplay& by friendship
 
 // Which grayscale plane a writeGrayscalePlaneStrip call targets.
@@ -183,6 +196,7 @@ class Panel {
   virtual void onBegin() {}
 };
 
+#if EINK_PANEL_X4
 // SSD1677, 800x480 mono. The original X4 hardware.
 class X4Panel : public Panel {
  public:
@@ -206,6 +220,7 @@ class X4Panel : public Panel {
   void setCustomLUT(EInkDisplay& d, bool enabled, const unsigned char* lutData = nullptr) override;
   void deepSleep(EInkDisplay& d) override;
 };
+#endif  // EINK_PANEL_X4
 
 // X3Panel (UC81xx-class, 792x528) lives in X3Panel.h since it carries
 // the X3-specific SPI helper surface.

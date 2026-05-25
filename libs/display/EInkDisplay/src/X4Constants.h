@@ -2,6 +2,10 @@
 
 #include <cstdint>
 
+#include "Panel.h"  // EINK_PANEL_X4
+
+#if EINK_PANEL_X4
+
 // SSD1677 command opcodes (X4 controller). Some opcodes overlap with
 // the UC81xx (X3) controller but mean different things; the bare
 // CMD_ prefix marks the X4-only code paths that use them.
@@ -44,3 +48,5 @@ constexpr uint8_t CMD_WRITE_TEMP = 0x1A;      // Write temperature
 
 // Power management
 constexpr uint8_t CMD_DEEP_SLEEP = 0x10;  // Deep sleep
+
+#endif  // EINK_PANEL_X4

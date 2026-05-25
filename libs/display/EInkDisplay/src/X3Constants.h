@@ -2,6 +2,10 @@
 
 #include <cstdint>
 
+#include "Panel.h"  // EINK_PANEL_X3
+
+#if EINK_PANEL_X3
+
 // UC81xx-class command opcodes (X3 controller). Opcodes overlap with
 // SSD1677 (X4) but mean different things; the CMD_X3_ prefix marks
 // the X3-only code paths that use them.
@@ -43,3 +47,5 @@ constexpr uint8_t CMD_X3_LV_SELECTION = 0xE1;        // Source LV / FT_GS select
 constexpr uint8_t CMD_X3_PARTIAL_WINDOW = 0x90;  // PTL — set partial window coords
 constexpr uint8_t CMD_X3_PARTIAL_IN = 0x91;      // PTIN — enter partial mode
 constexpr uint8_t CMD_X3_PARTIAL_OUT = 0x92;     // PTOUT — exit partial mode
+
+#endif  // EINK_PANEL_X3

@@ -4,6 +4,8 @@
 
 #include "Panel.h"
 
+#if EINK_PANEL_X3
+
 class EInkDisplay;  // forward decl — X3Panel methods take EInkDisplay& by friendship
 
 // UC81xx-class, 792x528. Implements the full Panel virtual surface for
@@ -84,3 +86,5 @@ class X3Panel : public Panel {
   // `tag` string appears verbatim in busy-wait log lines.
   void triggerRefreshX3(EInkDisplay& d, bool turnOffScreen, const char* tag) const;
 };
+
+#endif  // EINK_PANEL_X3

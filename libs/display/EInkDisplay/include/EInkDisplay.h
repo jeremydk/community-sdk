@@ -8,8 +8,12 @@
 #include "X3Panel.h"
 
 class EInkDisplay {
+#if EINK_PANEL_X3
   friend class X3Panel;  // grants X3-side helpers access to SPI/pin/state privates
+#endif
+#if EINK_PANEL_X4
   friend class X4Panel;  // ditto for X4-side panel logic
+#endif
 
  public:
   // Preferred constructor: inject the panel at construction time.
@@ -30,12 +34,14 @@ class EInkDisplay {
 
   // RefreshMode lives in Panel.h; reach via the qualified name.
 
+#if EINK_PANEL_X3
   // Set X3 panel geometry and mode (must be called before begin()).
   // Deprecated: pass the panel to the constructor instead. Kept as a
   // shim so existing callers can migrate at their own pace.
   [[deprecated(
       "Inject the panel at construction: EInkDisplay(std::make_unique<X3Panel>(), sclk, mosi, cs, dc, rst, busy)")]]
   void setDisplayX3();
+#endif  // EINK_PANEL_X3
 
   // Initialize the display hardware and driver
   void begin();
@@ -193,9 +199,13 @@ class EInkDisplay {
   void pollBusy(const char* comment, const char* completeWord);
   void initDisplayController();
 
-  // Low-level display operations
+#if EINK_PANEL_X4
+  // X4-specific helpers (SSD1677 opcodes); reached via friendship from
+  // X4Panel. Belong on X4Panel proper; lifted here pending finish-
+  // migration. Compiled out when X4 isn't built.
   void setRamArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
   void writeRamBuffer(uint8_t ramBuffer, const uint8_t* data, uint32_t size);
+#endif
 
 };
 
