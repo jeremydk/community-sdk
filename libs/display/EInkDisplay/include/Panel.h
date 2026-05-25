@@ -132,7 +132,10 @@ class Panel {
 
   // Render a 4-level grayscale buffer that was previously deposited via
   // copyGrayscaleBuffers / writeGrayscalePlaneStrip. `lut` is the
-  // waveform LUT (nullable — panels pick a default). `factoryMode`
+  // waveform LUT for panels that load custom waveforms via direct
+  // register writes (X4/SSD1677 honours it via setCustomLUT); nullable,
+  // and panels free to ignore it — X3/UC81xx always uses its own
+  // banked LUT path and disregards `lut` entirely. `factoryMode`
   // selects absolute-mode rendering for image content vs differential
   // mode for text-overlay AA.
   virtual void displayGrayBuffer(EInkDisplay& d, bool turnOffScreen, const unsigned char* lut, bool factoryMode) = 0;
